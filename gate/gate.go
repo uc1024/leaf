@@ -1,12 +1,20 @@
 package gate
 
 import (
-	"github.com/uc1024/leaf/chanrpc"
-	"github.com/uc1024/leaf/log"
-	"github.com/uc1024/leaf/network"
 	"net"
 	"reflect"
 	"time"
+
+	"github.com/uc1024/leaf/chanrpc"
+	"github.com/uc1024/leaf/log"
+	"github.com/uc1024/leaf/network"
+)
+
+// gate event
+const (
+	NEW_AGENT   = "/NewAgent"   // * create new conn event
+	CLOSE_AGENT = "/CloseAgent" // * close conn evnet
+	AUTH_AGENT  = "/AuthAgent"  // * auth agent event
 )
 
 type Gate struct {
@@ -15,6 +23,9 @@ type Gate struct {
 	MaxMsgLen       uint32
 	Processor       network.Processor
 	AgentChanRPC    *chanrpc.Server
+
+	// auth
+	// OpenAuth bool
 
 	// websocket
 	WSAddr      string
@@ -42,7 +53,7 @@ func (gate *Gate) Run(closeSig chan bool) {
 		wsServer.NewAgent = func(conn *network.WSConn) network.Agent {
 			a := &agent{conn: conn, gate: gate}
 			if gate.AgentChanRPC != nil {
-				gate.AgentChanRPC.Go("NewAgent", a)
+				gate.AgentChanRPC.Go(NEW_AGENT, a)
 			}
 			return a
 		}
@@ -60,7 +71,7 @@ func (gate *Gate) Run(closeSig chan bool) {
 		tcpServer.NewAgent = func(conn *network.TCPConn) network.Agent {
 			a := &agent{conn: conn, gate: gate}
 			if gate.AgentChanRPC != nil {
-				gate.AgentChanRPC.Go("NewAgent", a)
+				gate.AgentChanRPC.Go(NEW_AGENT, a)
 			}
 			return a
 		}
@@ -87,6 +98,7 @@ type agent struct {
 	conn     network.Conn
 	gate     *Gate
 	userData interface{}
+	auth     bool
 }
 
 func (a *agent) Run() {
@@ -157,4 +169,12 @@ func (a *agent) UserData() interface{} {
 
 func (a *agent) SetUserData(data interface{}) {
 	a.userData = data
+}
+
+func (a *agent) Auth() bool {
+	return a.auth
+}
+
+func (a *agent) SetAuth(auth bool) {
+	a.auth = auth
 }

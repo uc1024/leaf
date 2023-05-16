@@ -12,4 +12,5 @@ type Agent interface {
 	Destroy()
 	UserData() interface{}
 	SetUserData(data interface{})
+	Auth() bool
 }

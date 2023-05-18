@@ -2,34 +2,12 @@ package console
 
 import (
 	"bufio"
+	"strings"
+
 	"github.com/uc1024/leaf/conf"
 	"github.com/uc1024/leaf/network"
-	"math"
-	"strconv"
-	"strings"
 )
 
-var server *network.TCPServer
-
-func Init() {
-	if conf.ConsolePort == 0 {
-		return
-	}
-
-	server = new(network.TCPServer)
-	server.Addr = "localhost:" + strconv.Itoa(conf.ConsolePort)
-	server.MaxConnNum = int(math.MaxInt32)
-	server.PendingWriteNum = 100
-	server.NewAgent = newAgent
-
-	server.Start()
-}
-
-func Destroy() {
-	if server != nil {
-		server.Close()
-	}
-}
 
 type Agent struct {
 	conn   *network.TCPConn

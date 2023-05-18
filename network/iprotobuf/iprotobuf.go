@@ -50,6 +50,7 @@ func (p *Processor) SetByteOrder(littleEndian bool) {
 
 // It's dangerous to call the method on routing or marshaling (unmarshaling)
 func (p *Processor) Register(id uint16, msg proto.Message) uint16 {
+	// log.Debug("register msg id: %v", id)
 	msgType := reflect.TypeOf(msg)
 	if msgType == nil || msgType.Kind() != reflect.Ptr {
 		log.Fatal("protobuf message pointer required")
@@ -162,7 +163,6 @@ func (p *Processor) Unmarshal(data []byte) (interface{}, error) {
 // goroutine safe
 func (p *Processor) Marshal(msg interface{}) ([][]byte, error) {
 	msgType := reflect.TypeOf(msg)
-
 	// id
 	_id, ok := p.msgID[msgType]
 	if !ok {

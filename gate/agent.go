@@ -13,4 +13,5 @@ type Agent interface {
 	UserData() interface{}
 	SetUserData(data interface{})
 	Auth() bool
+	SetAuth(auth bool)
 }

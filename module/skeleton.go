@@ -9,6 +9,22 @@ import (
 	"github.com/uc1024/leaf/timer"
 )
 
+// skeleton := &module.Skeleton{
+// 	GoLen:              GoLen,
+// 	TimerDispatcherLen: TimerDispatcherLen,
+// 	AsynCallLen:        AsynCallLen,
+// 	ChanRPCServer:      chanrpc.NewServer(ChanRPCLen),
+// }
+// skeleton.Init()
+// return skeleton
+
+type SkeletonOptions struct {
+	GoLen              int
+	TimerDispatcherLen int
+	AsynCallLen        int
+	ChanRPCLen         int
+}
+
 type Skeleton struct {
 	GoLen              int
 	TimerDispatcherLen int
@@ -19,6 +35,17 @@ type Skeleton struct {
 	client             *chanrpc.Client
 	server             *chanrpc.Server
 	commandServer      *chanrpc.Server
+}
+
+func NewSkeleton(options SkeletonOptions) *Skeleton {
+	skeleton := &Skeleton{
+		GoLen:              options.GoLen,
+		TimerDispatcherLen: options.TimerDispatcherLen,
+		AsynCallLen:        options.AsynCallLen,
+		ChanRPCServer:      chanrpc.NewServer(options.ChanRPCLen),
+	}
+	skeleton.Init()
+	return skeleton
 }
 
 func (s *Skeleton) Init() {

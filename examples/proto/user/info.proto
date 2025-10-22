@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package proto.user;
+
+import "google/api/field_behavior.proto";
+
+option go_package = "proto/user";
+
+message InfoReq {
+  // option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+  //   json_schema: {
+  //     title: "UserInfo"
+  //     description: "用户"}
+  // };
+  string Name = 1; 
+  // * 用户信息
+  // @gotags: binding:"omitempty" form:"data"
+  // data.UserId select = 1 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message InfoRsp {
+}

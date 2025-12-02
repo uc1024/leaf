@@ -34,6 +34,9 @@ type IUserModule interface {
 	// - 用户信息
 	//
 	Info(ctx context.Context, req *InfoReq, rsp *InfoRsp) (err error)
+
+	// Login login
+	Login(ctx context.Context, req *InfoReq, rsp *InfoRsp) (err error)
 }
 
 // * RegisterLeaf 注册消息
@@ -56,6 +59,26 @@ func RegisterUserModuleMessage(processor *iprotobuf.Processor, skeleton *module.
 		response := &InfoRsp{}
 
 		err := m.Info(ctx, request, response)
+		if err != nil {
+			agent.Close()
+			return
+		}
+		agent.WriteMsg(response)
+	})
+
+	processor.Register(102, &InfoReq{})
+	processor.Register(103, &InfoRsp{})
+	processor.SetRouter(&InfoReq{}, rpc)
+	skeleton.RegisterChanRPC(reflect.TypeOf(&InfoReq{}), func(args []interface{}) {
+		request := args[0].(*InfoReq)
+		_ = request
+		// * agent conn
+		agent := args[1].(gate.Agent)
+
+		ctx := context.WithValue(context.Background(), "agent", agent)
+		response := &InfoRsp{}
+
+		err := m.Login(ctx, request, response)
 		if err != nil {
 			agent.Close()
 			return

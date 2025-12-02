@@ -90,7 +90,7 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 	g.P("var _ = ", protogen.GoImportPath("github.com/uc1024/leaf/chanrpc").Ident("NewClient"))
 	g.P("var _ = ", protogen.GoImportPath("github.com/uc1024/leaf/network").Ident("Processor.Route"))
 	g.P("var _ = ", protogen.GoImportPath("github.com/uc1024/leaf/network/iprotobuf").Ident("NewProcessor"))
-	g.P("var _ = ", protogen.GoImportPath("github.com/uc1024/leaf/gate").Ident("NewGateModule"))
+	g.P("var _ = ", protogen.GoImportPath("github.com/uc1024/leaf/gate").Ident("Gate{}"))
 	for _, service := range file.Services {
 		genService(gen, file, g, service)
 	}
@@ -118,7 +118,7 @@ func genService(gen *protogen.Plugin, file *protogen.File,
 		if rule != nil && ok {
 			item := buildHTTPRule(g, method, rule)
 			// * 路径符合 /request/100/response/200
-			codes, err := parsePathToCodes(item.Path)
+			codes, err := parsePathToCodesV1(item.Path)
 			if err != nil {
 				// log.Printf("warn: %s \n", err.Error())
 				continue
@@ -134,7 +134,7 @@ func genService(gen *protogen.Plugin, file *protogen.File,
 			item.RequestCode = codes[0]
 			item.ReplyCode = codes[1]
 			openapi2, ok := proto.GetExtension(method.Desc.Options(), options.E_Openapiv2Operation).(*options.Operation)
-			if ok {
+			if ok && openapi2 != nil {
 				for i := 0; i < len(openapi2.Security); i++ {
 					// * 检查接口是否需要校验
 					if _, ok := openapi2.Security[i].SecurityRequirement["public"]; ok {
@@ -306,6 +306,33 @@ func transformPathParams(path string) string {
 
 	// 输出转换后的路径
 	return result
+}
+
+func parsePathToCodesV1(path string) (codes []uint16, err error) {
+	// /request/102/response/103
+	if len(path) == 0 {
+		return nil, errors.New("path is empty")
+	}
+	re := regexp.MustCompile(`^/request/(\d+)/response/(\d+)`)
+	match := re.FindStringSubmatch(path)
+	if len(match) == 3 {
+		start, err := strconv.ParseUint(match[1], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		if start > math.MaxUint16 {
+			return nil, errors.New("number out of range")
+		}
+		end, err := strconv.ParseUint(match[2], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		if end > math.MaxUint16 {
+			return nil, errors.New("number out of range")
+		}
+		return []uint16{uint16(start), uint16(end)}, nil
+	}
+	return []uint16{}, nil
 }
 
 func parsePathToCodes(path string) (codes []uint16, err error) {

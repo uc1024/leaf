@@ -43,4 +43,21 @@ service User {
       // }
     };
   }
+  // login
+  rpc login(InfoReq) returns (InfoRsp) {
+    option (google.api.http) = {
+      // custom: { kind: "100,101", path: "/tcp/user/info"},
+      post: "/request/102/response/103"
+      // post: "/request/t/response/t"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "测试public",
+      security: {
+        security_requirement: {
+          key: "public",
+        },
+      }
+    };
+  }
 }
